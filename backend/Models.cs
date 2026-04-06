@@ -45,3 +45,38 @@ public class GroupMember : BaseModel
     [Column("joined_at")]
     public DateTime? JoinedAt { get; set; }
 }
+
+[Table("expenses")]
+public class Expense : BaseModel
+{
+    [PrimaryKey("id", false)]
+    public string Id { get; set; } = string.Empty;
+
+    [Column("group_id")]
+    public string GroupId { get; set; } = string.Empty;
+
+    [Column("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [Column("amount")]
+    public decimal Amount { get; set; }
+
+    [Column("paid_by")]
+    public string PaidBy { get; set; } = string.Empty;
+
+    [Column("created_at")]
+    public DateTime? CreatedAt { get; set; }
+}
+
+[Table("expense_splits")]
+public class ExpenseSplit : BaseModel
+{
+    [Column("expense_id")]
+    public string ExpenseId { get; set; } = string.Empty;
+
+    [Column("user_id")]
+    public string UserId { get; set; } = string.Empty;
+
+    [Column("amount_owed")]
+    public decimal AmountOwed { get; set; }
+}
