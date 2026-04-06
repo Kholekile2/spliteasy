@@ -57,7 +57,7 @@ export default function SignUpPage() {
               value={fullName}
               onChange={e => setFullName(e.target.value)}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Alex Johnson"
             />
           </div>
@@ -71,7 +71,7 @@ export default function SignUpPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="alex@example.com"
             />
           </div>
@@ -86,7 +86,7 @@ export default function SignUpPage() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="At least 6 characters"
             />
           </div>
