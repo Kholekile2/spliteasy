@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { apiFetch } from '@/lib/api'
 import AddExpense from './AddExpense'
 
 interface Member {
   id: string
-  full_name?: string
-  fullName?: string
+  full_name: string
+  fullName: string
   email: string
 }
 
@@ -25,9 +26,10 @@ interface Props {
   groupId: string
   userId: string
   members: Member[]
+  onExpenseAdded?: () => void
 }
 
-export default function ExpenseList({ groupId, userId, members }: Props) {
+export default function ExpenseList({ groupId, userId, members, onExpenseAdded }: Props) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -44,11 +46,49 @@ export default function ExpenseList({ groupId, userId, members }: Props) {
 
   useEffect(() => {
     fetchExpenses()
-  }, [fetchExpenses])
+
+    // Keep UI synced even if realtime events are delayed or dropped.
+    const poller = window.setInterval(() => {
+      fetchExpenses()
+    }, 5000)
+
+    // Subscribe to realtime changes on the expenses table
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`expenses:${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expenses',
+        },
+        (payload: any) => {
+          const payloadGroupId =
+            payload.new?.group_id ?? payload.old?.group_id ?? payload.new?.groupId ?? payload.old?.groupId
+          // Only update if this expense belongs to our group
+          if (payloadGroupId === groupId) {
+            fetchExpenses()
+            if (onExpenseAdded) onExpenseAdded()
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          fetchExpenses()
+        }
+      })
+
+    // Cleanup - unsubscribe when the component unmounts
+    return () => {
+      window.clearInterval(poller)
+      supabase.removeChannel(channel)
+    }
+  }, [fetchExpenses, groupId, onExpenseAdded])
 
   function getMemberName(memberId: string) {
     const member = members.find(m => m.id === memberId)
-    return member?.full_name ?? member?.fullName ?? 'Unknown'
+    return member?.fullName ?? member?.full_name ?? 'Unknown'
   }
 
   const splitAmount = (amount: number) =>

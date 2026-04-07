@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { apiFetch } from '@/lib/api'
 
 interface Settlement {
@@ -20,20 +21,55 @@ export default function SettlementSummary({ groupId, userId }: Props) {
   const [settlements, setSettlements] = useState<Settlement[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchSettlements() {
-      try {
-        const data = await apiFetch(`/groups/${groupId}/settlements`, userId)
-        setSettlements(data)
-      } catch {
-        setSettlements([])
-      } finally {
-        setLoading(false)
-      }
+  const fetchSettlements = useCallback(async () => {
+    try {
+      const data = await apiFetch(`/groups/${groupId}/settlements`, userId)
+      setSettlements(data)
+    } catch {
+      setSettlements([])
+    } finally {
+      setLoading(false)
     }
-
-    fetchSettlements()
   }, [groupId, userId])
+
+  useEffect(() => {
+    fetchSettlements()
+
+    // Keep UI synced even if realtime events are delayed or dropped.
+    const poller = window.setInterval(() => {
+      fetchSettlements()
+    }, 5000)
+
+    // Subscribe to realtime changes - refresh settlements when expenses change
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`settlements:${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expenses',
+        },
+        (payload: any) => {
+          const payloadGroupId =
+            payload.new?.group_id ?? payload.old?.group_id ?? payload.new?.groupId ?? payload.old?.groupId
+          if (payloadGroupId === groupId) {
+            fetchSettlements()
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          fetchSettlements()
+        }
+      })
+
+    return () => {
+      window.clearInterval(poller)
+      supabase.removeChannel(channel)
+    }
+  }, [fetchSettlements, groupId])
 
   if (loading) {
     return (
