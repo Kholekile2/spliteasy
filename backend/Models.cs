@@ -29,7 +29,7 @@ public class Group : BaseModel
     [Column("created_by")]
     public string CreatedBy { get; set; } = string.Empty;
 
-    [Column("created_at")]
+    [Column("created_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime CreatedAt { get; set; }
 }
 

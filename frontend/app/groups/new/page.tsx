@@ -30,7 +30,6 @@ export default function NewGroupPage() {
         method: 'POST',
         body: JSON.stringify({ name }),
       })
-
       router.push(`/groups/${group.id}`)
     } catch (err: any) {
       setError(err.message)
@@ -39,54 +38,74 @@ export default function NewGroupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 text-sm">
-            ← Back to dashboard
+    <div className="app-shell flex flex-col">
+      <nav className="app-nav">
+        <div className="app-wrap flex items-center gap-4 py-4">
+          <Link
+            href="/dashboard"
+            className="text-sm text-slate-500 transition-colors hover:text-slate-700"
+          >
+            {'<'} Dashboard
           </Link>
-          <h1 className="text-lg font-bold text-gray-900">SplitEasy</h1>
+          <div className="h-4 w-px bg-slate-200" />
+          <div className="flex items-center gap-2">
+            <div className="brand-mark">
+              <span>S</span>
+            </div>
+            <span className="brand-name">SplitEasy</span>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Create a new group</h2>
-          <p className="text-gray-500 mt-1">
-            Give your group a name and start adding members.
-          </p>
-        </div>
+      <main className="app-wrap w-full py-10">
+        <div className="max-w-lg">
+          <div className="mb-8">
+            <h1 className="app-title">New group</h1>
+            <p className="app-subtitle">
+              Give your group a name — you can invite members after creating it.
+            </p>
+          </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-lg">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Group name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g. Barcelona Trip, Flat 4B"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">
-                {error}
+          <div className="app-card p-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Group name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                  autoFocus
+                  className="app-input"
+                  placeholder="e.g. Barcelona Trip, Flat 4B, Road Trip 2026"
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
-            >
-              {loading ? 'Creating...' : 'Create group'}
-            </button>
-          </form>
+              {error && (
+                <div className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Link
+                  href="/dashboard"
+                  className="app-btn-secondary flex-1 text-center"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="app-btn-primary flex-1"
+                >
+                  {loading ? 'Creating...' : 'Create group'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </main>
     </div>

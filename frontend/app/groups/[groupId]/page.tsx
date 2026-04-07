@@ -5,6 +5,9 @@ import Link from 'next/link'
 import InviteMember from './InviteMember'
 import ExpenseList from './ExpenseList'
 import SettlementSummary from './SettlementSummary'
+import MembersList from './MembersList'
+import GroupActions from '@/app/groups/[groupId]/GroupActions'
+import GroupRealtimeSync from './GroupRealtimeSync'
 
 interface Props {
   params: { groupId: string }
@@ -18,74 +21,99 @@ export default async function GroupPage({ params }: Props) {
 
   const { groupId } = params
 
-  const [group, members] = await Promise.all([
-    apiFetch(`/groups/${groupId}`, user.id),
-    apiFetch(`/groups/${groupId}/members`, user.id),
-  ])
+  let group
+  let members
+
+  try {
+    [group, members] = await Promise.all([
+      apiFetch(`/groups/${groupId}`, user.id),
+      apiFetch(`/groups/${groupId}/members`, user.id),
+    ])
+  } catch (error: any) {
+    const message = error?.message ?? ''
+
+    if (
+      message === 'Forbidden.' ||
+      message.includes('Forbidden') ||
+      message === 'Group not found.'
+    ) {
+      redirect('/dashboard')
+    }
+
+    throw error
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <Link href="/dashboard" className="text-gray-400 hover:text-gray-600 text-sm">
-            ← Back to dashboard
-          </Link>
-          <h1 className="text-lg font-bold text-gray-900">SplitEasy</h1>
+    <div className="app-shell">
+      <nav className="app-nav">
+        <div className="app-wrap flex items-center justify-between py-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-1 text-sm text-slate-500 transition-colors hover:text-slate-700"
+            >
+              {'<'} Dashboard
+            </Link>
+            <div className="h-4 w-px bg-slate-200" />
+            <div className="flex items-center gap-2">
+              <div className="brand-mark">
+                <span>S</span>
+              </div>
+              <span className="brand-name">SplitEasy</span>
+            </div>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">{group.name}</h2>
-          <p className="text-gray-500 mt-1">
-            {members.length} member{members.length !== 1 ? 's' : ''}
-          </p>
+      <main className="app-wrap py-10">
+        <GroupRealtimeSync groupId={groupId} userId={user.id} />
+
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100">
+              <span className="text-lg font-bold text-sky-600">
+                {group.name?.[0]?.toUpperCase() ?? 'G'}
+              </span>
+            </div>
+            <div>
+              <h1 className="app-title">{group.name}</h1>
+              <p className="mt-0.5 text-sm text-slate-500">
+                {members.length} member{members.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <GroupActions
+            groupId={groupId}
+            userId={user.id}
+            createdBy={group.createdBy ?? group.created_by}
+          />
         </div>
 
-        <div className="grid gap-6">
-          {/* Members list */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Members</h3>
-            <ul className="divide-y divide-gray-100">
-              {members.map((member: any) => (
-                <li key={member.id} className="py-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
-                    {(member.full_name ?? member.fullName)?.[0]?.toUpperCase() ?? '?'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {member.full_name ?? member.fullName}
-                    </p>
-                    <p className="text-xs text-gray-400">{member.email}</p>
-                  </div>
-                  {member.id === user.id && (
-                    <span className="ml-auto text-xs text-gray-400">You</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 grid gap-4 self-start">
+            <div className="app-card p-5">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-700">
+                Members
+              </h2>
+              <MembersList
+                groupId={groupId}
+                userId={user.id}
+                initialMembers={members}
+              />
+            </div>
+
+            <div className="app-card p-5">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-700">
+                Invite member
+              </h2>
+              <InviteMember groupId={groupId} userId={user.id} />
+            </div>
           </div>
 
-          {/* Invite member */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">
-              Invite a member
-            </h3>
-            <InviteMember groupId={groupId} userId={user.id} />
+          <div className="lg:col-span-2 grid gap-4">
+            <SettlementSummary groupId={groupId} userId={user.id} />
+            <ExpenseList groupId={groupId} userId={user.id} members={members} />
           </div>
-
-          {/* Settlement summary */}
-          <SettlementSummary
-            groupId={groupId}
-            userId={user.id}
-          />
-
-          {/* Expenses */}
-          <ExpenseList
-            groupId={groupId}
-            userId={user.id}
-            members={members}
-          />
         </div>
       </main>
     </div>

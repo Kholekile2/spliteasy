@@ -40,5 +40,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 app.MapGroupsEndpoints();
 app.MapExpensesEndpoints();
 app.MapSettlementsEndpoints();
+app.MapAccountEndpoints();
 
 app.Run();

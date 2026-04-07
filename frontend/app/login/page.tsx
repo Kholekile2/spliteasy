@@ -18,11 +18,7 @@ export default function LoginPage() {
     setError(null)
 
     const supabase = createClient()
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
@@ -35,63 +31,76 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="text-gray-500 mt-1">Log in to your SplitEasy account</p>
+    <div className="app-shell flex flex-col">
+      <div className="app-wrap p-6">
+        <div className="flex items-center gap-2">
+          <div className="brand-mark">
+            <span>S</span>
+          </div>
+          <span className="brand-name">SplitEasy</span>
         </div>
+      </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email address
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="alex@example.com"
-            />
+      <div className="flex flex-1 items-center justify-center p-4">
+        <div className="app-card w-full max-w-md p-8">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Log in to see what you owe and who owes you.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Your password"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">
-              {error}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Email address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="app-input"
+                placeholder="you@example.com"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
-          >
-            {loading ? 'Logging in...' : 'Log in'}
-          </button>
-        </form>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="app-input"
+                placeholder="Your password"
+              />
+            </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:underline font-medium">
-            Sign up
-          </Link>
-        </p>
+            {error && (
+              <div className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="app-btn-primary w-full"
+            >
+              {loading ? 'Logging in...' : 'Log in'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="font-medium text-sky-600 hover:underline">
+              Sign up free
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

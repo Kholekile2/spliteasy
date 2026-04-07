@@ -60,7 +60,7 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="mb-1 block text-sm font-medium text-slate-700">
           Description
         </label>
         <input
@@ -68,13 +68,13 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
           value={description}
           onChange={e => setDescription(e.target.value)}
           required
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="app-input"
           placeholder="e.g. Dinner, Groceries, Petrol"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="mb-1 block text-sm font-medium text-slate-700">
           Amount (R)
         </label>
         <input
@@ -84,19 +84,19 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
           required
           min="0.01"
           step="0.01"
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="app-input"
           placeholder="0.00"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="mb-1 block text-sm font-medium text-slate-700">
           Paid by
         </label>
         <select
           value={paidBy}
           onChange={e => setPaidBy(e.target.value)}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          className="app-select"
         >
           {members.map(member => (
             <option key={member.id} value={member.id}>
@@ -107,7 +107,7 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">
+        <div className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
           {error}
         </div>
       )}
@@ -115,7 +115,7 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
+        className="app-btn-primary w-full"
       >
         {loading ? 'Adding...' : 'Add expense'}
       </button>

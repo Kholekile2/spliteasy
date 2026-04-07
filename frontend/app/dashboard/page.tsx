@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { apiFetch } from '@/lib/api'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import DashboardRealtimeSync from './DashboardRealtimeSync'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -22,70 +23,120 @@ export default async function DashboardPage() {
     groups = []
   }
 
+  const firstName = profile?.full_name?.split(' ')[0] ?? 'there'
+
+  function formatGroupCreatedDate(group: any) {
+    const raw = group.createdAt ?? group.created_at
+    if (!raw) return 'recently'
+
+    const parsed = new Date(raw)
+    if (Number.isNaN(parsed.getTime()) || parsed.getFullYear() < 2000) {
+      return 'recently'
+    }
+
+    return parsed.toLocaleDateString('en-ZA', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-900">SplitEasy</h1>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+    <div className="app-shell">
+      <nav className="app-nav">
+        <div className="app-wrap flex items-center justify-between py-4">
+          <div className="flex items-center gap-2">
+            <div className="brand-mark">
+              <span>S</span>
+            </div>
+            <span className="brand-name">SplitEasy</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-sm text-slate-500 sm:block">
+              {profile?.email}
+            </span>
+            <Link
+              href="/settings"
+              className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700"
             >
-              Log out
-            </button>
-          </form>
+              Settings
+            </Link>
+            <form action="/auth/signout" method="post">
+              <button
+                type="submit"
+                className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700"
+              >
+                Log out
+              </button>
+            </form>
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-8 flex items-center justify-between">
+      <main className="app-wrap py-10">
+        <DashboardRealtimeSync userId={user.id} />
+
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Welcome, {profile?.full_name ?? user.email}
-            </h2>
-            <p className="text-gray-500 mt-1">
+            <h1 className="app-title">
+              Hey, {firstName}
+            </h1>
+            <p className="app-subtitle">
               {groups.length === 0
-                ? 'You have no groups yet.'
-                : `You are in ${groups.length} group${groups.length !== 1 ? 's' : ''}.`}
+                ? "You haven't joined any groups yet."
+                : `You're in ${groups.length} group${groups.length !== 1 ? 's' : ''}.`}
             </p>
           </div>
           <Link
             href="/groups/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors"
+            className="app-btn-primary shrink-0"
           >
             New group
           </Link>
         </div>
 
         {groups.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-900 font-medium mb-1">No groups yet</p>
-            <p className="text-gray-400 text-sm mb-4">
-              Create a group to start splitting expenses with friends.
+          <div className="app-card p-12 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-50">
+              <svg className="h-8 w-8 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h2 className="mb-1 text-lg font-semibold text-slate-900">
+              No groups yet
+            </h2>
+            <p className="mx-auto mb-6 max-w-xs text-sm text-slate-500">
+              Create a group to start splitting expenses with friends, housemates, or travel buddies.
             </p>
             <Link
               href="/groups/new"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors"
+              className="app-btn-primary inline-block"
             >
               Create your first group
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {groups.map((group: any) => (
               <Link
                 key={group.id}
                 href={`/groups/${group.id}`}
-                className="bg-white rounded-2xl border border-gray-200 p-6 flex items-center justify-between hover:border-blue-300 hover:shadow-sm transition-all"
+                className="app-card group flex items-center justify-between p-5 transition-all hover:-translate-y-0.5 hover:border-sky-300"
               >
-                <div>
-                  <p className="font-semibold text-gray-900">{group.name}</p>
-                  <p className="text-sm text-gray-400 mt-0.5">
-                    Created {group.created_at ? new Date(group.created_at).toLocaleDateString() : 'recently'}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50">
+                    <span className="text-sm font-semibold text-sky-600">
+                      {group.name?.[0]?.toUpperCase() ?? 'G'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">{group.name}</p>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                      {formatGroupCreatedDate(group)}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-gray-300 text-lg">→</span>
+                <span className="text-lg text-slate-300 transition-colors group-hover:text-sky-400">{'>'}</span>
               </Link>
             ))}
           </div>

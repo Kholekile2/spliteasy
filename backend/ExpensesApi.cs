@@ -19,7 +19,7 @@ public static class ExpensesApi
                 .Get();
 
             if (!membership.Models.Any())
-                return Results.Forbid();
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
 
             // Fetch all expenses for this group
             var expenses = await supabase
@@ -55,7 +55,7 @@ public static class ExpensesApi
                 .Get();
 
             if (!membershipResult.Models.Any())
-                return Results.Forbid();
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
 
             // Get all members of the group so we can split equally
             var allMembers = await supabase
@@ -88,11 +88,15 @@ public static class ExpensesApi
                 .From<Expense>()
                 .Filter("group_id", Constants.Operator.Equals, groupId)
                 .Filter("paid_by", Constants.Operator.Equals, request.PaidBy)
+                .Filter("description", Constants.Operator.Equals, request.Description)
                 .Order("created_at", Constants.Ordering.Descending)
-                .Limit(1)
+                .Limit(10)
                 .Get();
 
-            var createdExpense = expenseResult.Models.First();
+            var createdExpense = expenseResult.Models
+                .FirstOrDefault(e => Math.Abs(e.Amount - request.Amount) <= 0.01m);
+            if (createdExpense is null)
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
 
             // Insert a split row for each member
             foreach (var memberId in memberIds)
@@ -115,6 +119,48 @@ public static class ExpensesApi
                 createdExpense.PaidBy,
                 createdExpense.CreatedAt
             ));
+        });
+
+        // DELETE /groups/{groupId}/expenses/{expenseId} — delete an expense
+        app.MapDelete("/groups/{groupId}/expenses/{expenseId}", async (Supabase.Client supabase, HttpContext context, string groupId, string expenseId) =>
+        {
+            var userId = context.Request.Headers["x-user-id"].ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Results.Unauthorized();
+
+            // Verify the requester is a member of this group
+            var membership = await supabase
+                .From<GroupMember>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Filter("user_id", Constants.Operator.Equals, userId)
+                .Get();
+
+            if (!membership.Models.Any())
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
+
+            // Verify the expense belongs to this group
+            var expenseResult = await supabase
+                .From<Expense>()
+                .Filter("id", Constants.Operator.Equals, expenseId)
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Get();
+
+            if (!expenseResult.Models.Any())
+                return Results.NotFound(new { message = "Expense not found." });
+
+            // Delete the splits first
+            await supabase
+                .From<ExpenseSplit>()
+                .Filter("expense_id", Constants.Operator.Equals, expenseId)
+                .Delete();
+
+            // Delete the expense
+            await supabase
+                .From<Expense>()
+                .Filter("id", Constants.Operator.Equals, expenseId)
+                .Delete();
+
+            return Results.Ok(new { message = "Expense deleted." });
         });
     }
 }

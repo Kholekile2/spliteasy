@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { apiFetch } from '@/lib/api'
 
 interface Props {
@@ -13,6 +14,7 @@ export default function InviteMember({ groupId, userId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault()
@@ -28,6 +30,7 @@ export default function InviteMember({ groupId, userId }: Props) {
 
       setSuccess(`${email} has been added to the group.`)
       setEmail('')
+      router.refresh()
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -43,26 +46,26 @@ export default function InviteMember({ groupId, userId }: Props) {
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
-          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="app-input flex-1"
           placeholder="friend@example.com"
         />
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap"
+          className="app-btn-primary whitespace-nowrap"
         >
           {loading ? 'Adding...' : 'Add member'}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">
+        <div className="rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 text-green-600 text-sm px-4 py-3 rounded-lg">
+        <div className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {success}
         </div>
       )}

@@ -99,7 +99,7 @@ public static class GroupsApi
                 .Get();
 
             if (!membership.Models.Any())
-                return Results.Forbid();
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
 
             // Look up the invitee by email
             var profiles = await supabase
@@ -149,7 +149,7 @@ public static class GroupsApi
                 .Get();
 
             if (!membership.Models.Any())
-                return Results.Forbid();
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
 
             var groupResult = await supabase
                 .From<Group>()
@@ -179,7 +179,7 @@ public static class GroupsApi
                 .Get();
 
             if (!membership.Models.Any())
-                return Results.Forbid();
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
 
             // Get all member user_ids
             var members = await supabase
@@ -200,6 +200,109 @@ public static class GroupsApi
                 .ToList();
 
             return Results.Ok(profileResponses);
+        });
+
+        // DELETE /groups/{groupId}/leave — leave a group
+        app.MapDelete("/groups/{groupId}/leave", async (Supabase.Client supabase, HttpContext context, string groupId) =>
+        {
+            var userId = context.Request.Headers["x-user-id"].ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Results.Unauthorized();
+
+            // Verify the requester is a member of this group
+            var membership = await supabase
+                .From<GroupMember>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Filter("user_id", Constants.Operator.Equals, userId)
+                .Get();
+
+            if (!membership.Models.Any())
+                return Results.BadRequest(new { message = "You are not a member of this group." });
+
+            // Check if user is the creator - creators cannot leave, they must delete the group
+            var groupResult = await supabase
+                .From<Group>()
+                .Filter("id", Constants.Operator.Equals, groupId)
+                .Limit(1)
+                .Get();
+
+            var group = groupResult.Models.FirstOrDefault();
+            if (group is null)
+                return Results.NotFound(new { message = "Group not found." });
+
+            if (group.CreatedBy == userId)
+                return Results.BadRequest(new { message = "You created this group. Delete the group instead of leaving it." });
+
+            // Remove the member
+            await supabase
+                .From<GroupMember>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Filter("user_id", Constants.Operator.Equals, userId)
+                .Delete();
+
+            return Results.Ok(new { message = "You have left the group." });
+        });
+
+        // DELETE /groups/{groupId} — delete a group (creator only)
+        app.MapDelete("/groups/{groupId}", async (Supabase.Client supabase, HttpContext context, string groupId) =>
+        {
+            var userId = context.Request.Headers["x-user-id"].ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Results.Unauthorized();
+
+            // Verify the requester is the creator of this group
+            var groupResult = await supabase
+                .From<Group>()
+                .Filter("id", Constants.Operator.Equals, groupId)
+                .Limit(1)
+                .Get();
+
+            var group = groupResult.Models.FirstOrDefault();
+            if (group == null)
+                return Results.NotFound(new { message = "Group not found." });
+
+            if (group.CreatedBy != userId)
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
+
+            // Delete all expense splits for this group's expenses
+            var expenses = await supabase
+                .From<Expense>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Get();
+
+            foreach (var expense in expenses.Models)
+            {
+                await supabase
+                    .From<ExpenseSplit>()
+                    .Filter("expense_id", Constants.Operator.Equals, expense.Id)
+                    .Delete();
+            }
+
+            // Delete all expenses
+            await supabase
+                .From<Expense>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Delete();
+
+            // Delete all settlements
+            await supabase
+                .From<Settlement>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Delete();
+
+            // Delete all memberships
+            await supabase
+                .From<GroupMember>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Delete();
+
+            // Delete the group itself
+            await supabase
+                .From<Group>()
+                .Filter("id", Constants.Operator.Equals, groupId)
+                .Delete();
+
+            return Results.Ok(new { message = "Group deleted." });
         });
     }
 }
