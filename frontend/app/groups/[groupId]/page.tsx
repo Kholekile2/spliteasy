@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InviteMember from './InviteMember'
 import ExpenseList from './ExpenseList'
+import SettlementSummary from './SettlementSummary'
 
 interface Props {
   params: { groupId: string }
@@ -72,6 +73,12 @@ export default async function GroupPage({ params }: Props) {
             </h3>
             <InviteMember groupId={groupId} userId={user.id} />
           </div>
+
+          {/* Settlement summary */}
+          <SettlementSummary
+            groupId={groupId}
+            userId={user.id}
+          />
 
           {/* Expenses */}
           <ExpenseList
