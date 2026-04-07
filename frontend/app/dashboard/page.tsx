@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DashboardRealtimeSync from './DashboardRealtimeSync'
+import LogoutButton from './LogoutButton'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -61,14 +62,7 @@ export default async function DashboardPage() {
             >
               Settings
             </Link>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="text-sm font-medium text-slate-500 transition-colors hover:text-slate-700"
-              >
-                Log out
-              </button>
-            </form>
+            <LogoutButton />
           </div>
         </div>
       </nav>
