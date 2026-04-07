@@ -135,6 +135,16 @@ export default function ExpenseList({ groupId, userId, members, onExpenseAdded }
                     <p className="text-xs text-gray-400 mt-0.5">
                       Paid by {getMemberName(expense.paidBy ?? expense.paid_by)}
                       {(expense.paidBy ?? expense.paid_by) === userId ? ' (you)' : ''}
+                      {' · '}
+                      {expense.createdAt || expense.created_at
+                        ? new Date(expense.createdAt ?? expense.created_at).toLocaleString('en-ZA', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : 'recently'}
                     </p>
                   </div>
                   <div className="text-right shrink-0">

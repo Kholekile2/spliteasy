@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { apiFetch } from '@/lib/api'
 
@@ -20,6 +20,8 @@ interface Props {
 export default function SettlementSummary({ groupId, userId }: Props) {
   const [settlements, setSettlements] = useState<Settlement[]>([])
   const [loading, setLoading] = useState(true)
+  const [settling, setSettling] = useState<string | null>(null)
+  const refreshTimerRef = useRef<number | null>(null)
 
   const fetchSettlements = useCallback(async () => {
     try {
@@ -35,12 +37,21 @@ export default function SettlementSummary({ groupId, userId }: Props) {
   useEffect(() => {
     fetchSettlements()
 
-    // Keep UI synced even if realtime events are delayed or dropped.
+    // Fallback polling keeps settlements synced if realtime misses events.
     const poller = window.setInterval(() => {
       fetchSettlements()
     }, 5000)
 
-    // Subscribe to realtime changes - refresh settlements when expenses change
+    const scheduleRefresh = () => {
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current)
+      }
+
+      refreshTimerRef.current = window.setTimeout(() => {
+        fetchSettlements()
+      }, 250)
+    }
+
     const supabase = createClient()
     const channel = supabase
       .channel(`settlements:${groupId}`)
@@ -52,14 +63,40 @@ export default function SettlementSummary({ groupId, userId }: Props) {
           table: 'expenses',
         },
         (payload: any) => {
-          const payloadGroupId =
-            payload.new?.group_id ?? payload.old?.group_id ?? payload.new?.groupId ?? payload.old?.groupId
+          const payloadGroupId = payload.new?.group_id || payload.old?.group_id
           if (payloadGroupId === groupId) {
-            fetchSettlements()
+            scheduleRefresh()
           }
         }
       )
-      .subscribe((status) => {
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expense_splits',
+        },
+        () => {
+          // Splits are part of the debt calculation; refresh when they change.
+          scheduleRefresh()
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'settlements',
+        },
+        (payload: any) => {
+          const payloadGroupId = payload.new?.group_id || payload.old?.group_id
+          if (payloadGroupId === groupId) {
+            scheduleRefresh()
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        console.log('Settlement realtime status:', status)
         if (status === 'SUBSCRIBED') {
           fetchSettlements()
         }
@@ -67,9 +104,34 @@ export default function SettlementSummary({ groupId, userId }: Props) {
 
     return () => {
       window.clearInterval(poller)
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current)
+      }
       supabase.removeChannel(channel)
     }
   }, [fetchSettlements, groupId])
+
+  async function handleSettle(settlement: Settlement) {
+    const key = `${settlement.fromUserId}-${settlement.toUserId}`
+    setSettling(key)
+
+    try {
+      await apiFetch(`/groups/${groupId}/settle`, userId, {
+        method: 'POST',
+        body: JSON.stringify({
+          fromUser: settlement.fromUserId,
+          toUser: settlement.toUserId,
+          amount: settlement.amount,
+        }),
+      })
+
+      await fetchSettlements()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setSettling(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -108,29 +170,46 @@ export default function SettlementSummary({ groupId, userId }: Props) {
         Settlement summary
       </h3>
       <ul className="divide-y divide-gray-100">
-        {settlements.map((s, index) => (
-          <li key={index} className="py-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-sm font-medium shrink-0">
-                {s.fromUserName?.[0]?.toUpperCase() ?? '?'}
+        {settlements.map((s, index) => {
+          const key = `${s.fromUserId}-${s.toUserId}`
+          const isMyDebt = s.fromUserId === userId
+
+          return (
+            <li key={index} className="py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-sm font-medium shrink-0">
+                  {s.fromUserName?.[0]?.toUpperCase() ?? '?'}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-900">
+                    <span className="font-medium">
+                      {s.fromUserId === userId ? 'You' : s.fromUserName}
+                    </span>
+                    {' '}owe{s.fromUserId === userId ? '' : 's'}{' '}
+                    <span className="font-medium">
+                      {s.toUserId === userId ? 'you' : s.toUserName}
+                    </span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-900">
-                  <span className="font-medium">
-                    {s.fromUserId === userId ? 'You' : s.fromUserName}
-                  </span>
-                  {' '}owe{s.fromUserId === userId ? '' : 's'}{' '}
-                  <span className="font-medium">
-                    {s.toUserId === userId ? 'you' : s.toUserName}
-                  </span>
-                </p>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-sm font-semibold text-red-600">
+                  R{s.amount.toFixed(2)}
+                </span>
+                {isMyDebt && (
+                  <button
+                    onClick={() => handleSettle(s)}
+                    disabled={settling === key}
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {settling === key ? 'Settling...' : 'Settle up'}
+                  </button>
+                )}
               </div>
-            </div>
-            <span className="text-sm font-semibold text-red-600 shrink-0">
-              R{s.amount.toFixed(2)}
-            </span>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

@@ -13,7 +13,7 @@ public class Profile : BaseModel
     [Column("email")]
     public string Email { get; set; } = string.Empty;
 
-    [Column("created_at")]
+    [Column("created_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime CreatedAt { get; set; }
 }
 
@@ -42,7 +42,7 @@ public class GroupMember : BaseModel
     [Column("user_id")]
     public string UserId { get; set; } = string.Empty;
 
-    [Column("joined_at")]
+    [Column("joined_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime? JoinedAt { get; set; }
 }
 
@@ -64,7 +64,7 @@ public class Expense : BaseModel
     [Column("paid_by")]
     public string PaidBy { get; set; } = string.Empty;
 
-    [Column("created_at")]
+    [Column("created_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime? CreatedAt { get; set; }
 }
 
@@ -79,4 +79,23 @@ public class ExpenseSplit : BaseModel
 
     [Column("amount_owed")]
     public decimal AmountOwed { get; set; }
+}
+
+[Table("settlements")]
+public class Settlement : BaseModel
+{
+    [Column("group_id")]
+    public string GroupId { get; set; } = string.Empty;
+
+    [Column("from_user")]
+    public string FromUser { get; set; } = string.Empty;
+
+    [Column("to_user")]
+    public string ToUser { get; set; } = string.Empty;
+
+    [Column("amount")]
+    public decimal Amount { get; set; }
+
+    [Column("settled_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
+    public DateTime? SettledAt { get; set; }
 }
