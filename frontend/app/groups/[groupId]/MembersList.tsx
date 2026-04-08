@@ -72,11 +72,11 @@ export default function MembersList({ groupId, userId, initialMembers }: Props) 
   }, [fetchMembers, groupId])
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2 min-w-0">
       {members.map(member => (
         <li
           key={member.id}
-          className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors ${
+          className={`flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border px-3 py-2.5 transition-colors ${
             member.id === userId
               ? 'border-sky-200 bg-sky-50/80'
               : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
@@ -89,10 +89,10 @@ export default function MembersList({ groupId, userId, initialMembers }: Props) 
             <p className="truncate text-sm font-medium text-slate-900">
               {member.fullName ?? member.full_name}
             </p>
-            <p className="truncate text-xs text-slate-500">{member.email}</p>
+            <p className="break-all text-xs text-slate-500">{member.email}</p>
           </div>
           {member.id === userId && (
-            <span className="shrink-0 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
+            <span className="ml-1 shrink-0 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
               You
             </span>
           )}

@@ -89,9 +89,9 @@ export default async function GroupPage({ params }: Props) {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="grid gap-4 self-start min-w-0 lg:col-span-1">
-            <div className="app-card p-5">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="grid gap-4 self-start min-w-0 lg:col-span-2">
+            <div className="app-card overflow-hidden p-5">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-700">
                 Members
               </h2>
@@ -102,7 +102,7 @@ export default async function GroupPage({ params }: Props) {
               />
             </div>
 
-            <div className="app-card p-5">
+            <div className="app-card overflow-hidden p-5">
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-700">
                 Invite member
               </h2>
@@ -110,7 +110,7 @@ export default async function GroupPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="grid min-w-0 gap-4 lg:col-span-2">
+          <div className="grid min-w-0 gap-4 lg:col-span-3">
             <SettlementSummary groupId={groupId} userId={user.id} />
             <ExpenseList groupId={groupId} userId={user.id} members={members} />
           </div>

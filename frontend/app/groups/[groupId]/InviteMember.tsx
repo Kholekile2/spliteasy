@@ -39,20 +39,20 @@ export default function InviteMember({ groupId, userId }: Props) {
   }
 
   return (
-    <form onSubmit={handleInvite} className="space-y-4">
-      <div className="flex gap-3">
+    <form onSubmit={handleInvite} className="space-y-4 min-w-0">
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
         <input
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
-          className="app-input flex-1"
+          className="app-input min-w-0 flex-1"
           placeholder="friend@example.com"
         />
         <button
           type="submit"
           disabled={loading}
-          className="app-btn-primary whitespace-nowrap"
+          className="app-btn-primary shrink-0 whitespace-nowrap sm:w-auto"
         >
           {loading ? 'Adding...' : 'Add member'}
         </button>
