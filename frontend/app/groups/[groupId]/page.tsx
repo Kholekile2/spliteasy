@@ -8,6 +8,7 @@ import DeletionHistory from './DeletionHistory'
 import GroupStats from './GroupStats'
 import SettlementSummary from './SettlementSummary'
 import MembersList from './MembersList'
+import ExportPDF from './ExportPDF'
 import GroupActions from '@/app/groups/[groupId]/GroupActions'
 import GroupRealtimeSync from './GroupRealtimeSync'
 
@@ -84,11 +85,19 @@ export default async function GroupPage({ params }: Props) {
               </p>
             </div>
           </div>
-          <GroupActions
-            groupId={groupId}
-            userId={user.id}
-            createdBy={group.createdBy ?? group.created_by}
-          />
+          <div className="flex items-center gap-4 shrink-0">
+            <ExportPDF
+              groupId={groupId}
+              groupName={group.name}
+              userId={user.id}
+              members={members}
+            />
+            <GroupActions
+              groupId={groupId}
+              userId={user.id}
+              createdBy={group.createdBy ?? group.created_by}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
