@@ -34,7 +34,8 @@ public static class ExpensesApi
                 e.Description,
                 e.Amount,
                 e.PaidBy,
-                e.CreatedAt
+                e.CreatedAt,
+                e.Category
             )).ToList();
 
             return Results.Ok(result);
@@ -79,6 +80,7 @@ public static class ExpensesApi
                 Description = request.Description,
                 Amount = request.Amount,
                 PaidBy = request.PaidBy,
+                Category = request.Category,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -118,7 +120,8 @@ public static class ExpensesApi
                 createdExpense.Description,
                 createdExpense.Amount,
                 createdExpense.PaidBy,
-                createdExpense.CreatedAt
+                createdExpense.CreatedAt,
+                createdExpense.Category
             ));
         });
 
@@ -241,8 +244,8 @@ public static class ExpensesApi
 }
 
 // Request and response DTOs
-public record CreateExpenseRequest(string Description, decimal Amount, string PaidBy);
-public record ExpenseResponse(string Id, string GroupId, string Description, decimal Amount, string PaidBy, DateTime? CreatedAt);
+public record CreateExpenseRequest(string Description, decimal Amount, string PaidBy, string Category = "Other");
+public record ExpenseResponse(string Id, string GroupId, string Description, decimal Amount, string PaidBy, DateTime? CreatedAt, string Category = "Other");
 public record DeletionHistoryResponse(
     string ExpenseDescription,
     decimal ExpenseAmount,

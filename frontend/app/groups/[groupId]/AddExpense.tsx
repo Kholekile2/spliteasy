@@ -21,6 +21,7 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [paidBy, setPaidBy] = useState(userId)
+  const [category, setCategory] = useState('Other')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -43,12 +44,14 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
           description,
           amount: parsedAmount,
           paidBy,
+          category,
         }),
       })
 
       setDescription('')
       setAmount('')
       setPaidBy(userId)
+      setCategory('Other')
       onExpenseAdded()
     } catch (err: any) {
       setError(err.message)
@@ -103,6 +106,25 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
               {(member.full_name ?? member.fullName ?? member.email)} {member.id === userId ? '(you)' : ''}
             </option>
           ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-700">
+          Category
+        </label>
+        <select
+          value={category}
+          onChange={e => setCategory(e.target.value)}
+          className="app-select"
+        >
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Accommodation">Accommodation</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Utilities">Utilities</option>
+          <option value="Other">Other</option>
         </select>
       </div>
 

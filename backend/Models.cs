@@ -64,6 +64,9 @@ public class Expense : BaseModel
     [Column("paid_by")]
     public string PaidBy { get; set; } = string.Empty;
 
+    [Column("category")]
+    public string Category { get; set; } = "Other";
+
     [Column("created_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime? CreatedAt { get; set; }
 }

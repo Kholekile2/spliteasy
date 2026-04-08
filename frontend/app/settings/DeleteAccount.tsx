@@ -45,7 +45,7 @@ export default function DeleteAccount({ userId }: Props) {
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-          <div className="app-card w-full max-w-md p-6 shadow-2xl ring-1 ring-black/5">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl ring-1 ring-black/5">
             <h4 className="text-base font-semibold text-slate-900">
               Delete your account?
             </h4>

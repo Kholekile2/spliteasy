@@ -20,6 +20,7 @@ interface Expense {
   paidBy: string
   created_at: string
   createdAt: string
+  category: string
 }
 
 interface Props {
@@ -157,9 +158,16 @@ export default function ExpenseList({ groupId, userId, members, onExpenseAdded }
               <li key={expense.id} className="py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900">
-                      {expense.description}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-slate-900">
+                        {expense.description}
+                      </p>
+                      {expense.category && expense.category !== 'Other' && (
+                        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700">
+                          {expense.category}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-0.5 text-xs text-slate-500">
                       Paid by {getMemberName(expense.paidBy ?? expense.paid_by)}
                       {(expense.paidBy ?? expense.paid_by) === userId ? ' (you)' : ''}
@@ -197,8 +205,8 @@ export default function ExpenseList({ groupId, userId, members, onExpenseAdded }
       </div>
 
       {expenseToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 px-4 backdrop-blur-sm">
-          <div className="app-card w-full max-w-md p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl ring-1 ring-black/5">
             <h4 className="text-base font-semibold text-slate-900">
               Delete expense?
             </h4>
