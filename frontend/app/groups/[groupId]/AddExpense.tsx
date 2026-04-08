@@ -17,6 +17,16 @@ interface Props {
   onExpenseAdded: () => void
 }
 
+const CATEGORY_ICONS: Record<string, string> = {
+  Food: '🍔',
+  Transport: '🚗',
+  Accommodation: '🏠',
+  Entertainment: '🎬',
+  Shopping: '🛍️',
+  Utilities: '💡',
+  Other: '📦',
+}
+
 export default function AddExpense({ groupId, userId, members, onExpenseAdded }: Props) {
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
@@ -118,13 +128,13 @@ export default function AddExpense({ groupId, userId, members, onExpenseAdded }:
           onChange={e => setCategory(e.target.value)}
           className="app-select"
         >
-          <option value="Food">Food</option>
-          <option value="Transport">Transport</option>
-          <option value="Accommodation">Accommodation</option>
-          <option value="Entertainment">Entertainment</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Utilities">Utilities</option>
-          <option value="Other">Other</option>
+          <option value="Food">{CATEGORY_ICONS.Food} Food</option>
+          <option value="Transport">{CATEGORY_ICONS.Transport} Transport</option>
+          <option value="Accommodation">{CATEGORY_ICONS.Accommodation} Accommodation</option>
+          <option value="Entertainment">{CATEGORY_ICONS.Entertainment} Entertainment</option>
+          <option value="Shopping">{CATEGORY_ICONS.Shopping} Shopping</option>
+          <option value="Utilities">{CATEGORY_ICONS.Utilities} Utilities</option>
+          <option value="Other">{CATEGORY_ICONS.Other} Other</option>
         </select>
       </div>
 

@@ -30,6 +30,16 @@ interface Props {
   onExpenseAdded?: () => void
 }
 
+const CATEGORY_ICONS: Record<string, string> = {
+  Food: '🍔',
+  Transport: '🚗',
+  Accommodation: '🏠',
+  Entertainment: '🎬',
+  Shopping: '🛍️',
+  Utilities: '💡',
+  Other: '📦',
+}
+
 export default function ExpenseList({ groupId, userId, members, onExpenseAdded }: Props) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [loading, setLoading] = useState(true)
@@ -163,8 +173,9 @@ export default function ExpenseList({ groupId, userId, members, onExpenseAdded }
                         {expense.description}
                       </p>
                       {expense.category && expense.category !== 'Other' && (
-                        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700">
-                          {expense.category}
+                        <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-xs text-sky-700">
+                          <span>{CATEGORY_ICONS[expense.category] ?? CATEGORY_ICONS.Other}</span>
+                          <span>{expense.category}</span>
                         </span>
                       )}
                     </div>
