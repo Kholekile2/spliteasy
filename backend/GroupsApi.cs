@@ -47,7 +47,8 @@ public static class GroupsApi
             var newGroup = new Group
             {
                 Name = request.Name,
-                CreatedBy = userId
+                CreatedBy = userId,
+                CreatedAt = DateTime.UtcNow
             };
 
             await supabase
@@ -69,7 +70,8 @@ public static class GroupsApi
             var membership = new GroupMember
             {
                 GroupId = createdGroup.Id,
-                UserId = userId
+                UserId = userId,
+                JoinedAt = DateTime.UtcNow
             };
 
             await supabase
@@ -126,7 +128,8 @@ public static class GroupsApi
             var newMember = new GroupMember
             {
                 GroupId = groupId,
-                UserId = invitee.Id
+                UserId = invitee.Id,
+                JoinedAt = DateTime.UtcNow
             };
 
             await supabase.From<GroupMember>().Insert(newMember);

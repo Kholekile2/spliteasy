@@ -99,3 +99,22 @@ public class Settlement : BaseModel
     [Column("settled_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
     public DateTime? SettledAt { get; set; }
 }
+
+[Table("deletion_history")]
+public class DeletionHistory : BaseModel
+{
+    [Column("group_id")]
+    public string GroupId { get; set; } = string.Empty;
+
+    [Column("deleted_by")]
+    public string DeletedBy { get; set; } = string.Empty;
+
+    [Column("expense_description")]
+    public string ExpenseDescription { get; set; } = string.Empty;
+
+    [Column("expense_amount")]
+    public decimal ExpenseAmount { get; set; }
+
+    [Column("deleted_at", Newtonsoft.Json.NullValueHandling.Ignore, true, false)]
+    public DateTime? DeletedAt { get; set; }
+}

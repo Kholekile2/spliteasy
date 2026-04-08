@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InviteMember from './InviteMember'
 import ExpenseList from './ExpenseList'
+import DeletionHistory from './DeletionHistory'
 import SettlementSummary from './SettlementSummary'
 import MembersList from './MembersList'
 import GroupActions from '@/app/groups/[groupId]/GroupActions'
@@ -113,6 +114,7 @@ export default async function GroupPage({ params }: Props) {
           <div className="grid min-w-0 gap-4 lg:col-span-3">
             <SettlementSummary groupId={groupId} userId={user.id} />
             <ExpenseList groupId={groupId} userId={user.id} members={members} />
+            <DeletionHistory groupId={groupId} userId={user.id} />
           </div>
         </div>
       </main>

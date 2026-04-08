@@ -37,14 +37,15 @@ export default function DeleteAccount({ userId }: Props) {
     <>
       <button
         onClick={() => setShowConfirm(true)}
-        className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-100"
+        type="button"
+        className="rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition-colors hover:bg-rose-50"
       >
         Delete account
       </button>
 
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 px-4 backdrop-blur-sm">
-          <div className="app-card w-full max-w-md p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+          <div className="app-card w-full max-w-md p-6 shadow-2xl ring-1 ring-black/5">
             <h4 className="text-base font-semibold text-slate-900">
               Delete your account?
             </h4>

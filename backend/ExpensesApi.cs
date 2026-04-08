@@ -78,7 +78,8 @@ public static class ExpensesApi
                 GroupId = groupId,
                 Description = request.Description,
                 Amount = request.Amount,
-                PaidBy = request.PaidBy
+                PaidBy = request.PaidBy,
+                CreatedAt = DateTime.UtcNow
             };
 
             await supabase.From<Expense>().Insert(newExpense);
@@ -148,6 +149,20 @@ public static class ExpensesApi
             if (!expenseResult.Models.Any())
                 return Results.NotFound(new { message = "Expense not found." });
 
+            var expenseToDelete = expenseResult.Models.First();
+
+            // Log the deletion before deleting
+            var deletionLog = new DeletionHistory
+            {
+                GroupId = groupId,
+                DeletedBy = userId,
+                ExpenseDescription = expenseToDelete.Description,
+                ExpenseAmount = expenseToDelete.Amount,
+                DeletedAt = DateTime.UtcNow
+            };
+
+            await supabase.From<DeletionHistory>().Insert(deletionLog);
+
             // Delete the splits first
             await supabase
                 .From<ExpenseSplit>()
@@ -162,9 +177,76 @@ public static class ExpensesApi
 
             return Results.Ok(new { message = "Expense deleted." });
         });
+
+        // GET /groups/{groupId}/deletion-history — get recent deleted expense activity
+        app.MapGet("/groups/{groupId}/deletion-history", async (Supabase.Client supabase, HttpContext context, string groupId) =>
+        {
+            var userId = context.Request.Headers["x-user-id"].ToString();
+            if (string.IsNullOrEmpty(userId))
+                return Results.Unauthorized();
+
+            // Verify the requester is a member of this group
+            var membership = await supabase
+                .From<GroupMember>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Filter("user_id", Constants.Operator.Equals, userId)
+                .Get();
+
+            if (!membership.Models.Any())
+                return Results.Json(new { message = "Forbidden." }, statusCode: 403);
+
+            var deletionResult = await supabase
+                .From<DeletionHistory>()
+                .Filter("group_id", Constants.Operator.Equals, groupId)
+                .Order("deleted_at", Constants.Ordering.Descending)
+                .Limit(50)
+                .Get();
+
+            if (!deletionResult.Models.Any())
+                return Results.Ok(new List<DeletionHistoryResponse>());
+
+            var deletedByIds = deletionResult.Models
+                .Select(d => d.DeletedBy)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            var deletedByNames = new Dictionary<string, string>();
+            if (deletedByIds.Any())
+            {
+                var profilesResult = await supabase
+                    .From<Profile>()
+                    .Filter("id", Constants.Operator.In, deletedByIds)
+                    .Get();
+
+                deletedByNames = profilesResult.Models
+                    .Where(p => !string.IsNullOrWhiteSpace(p.Id))
+                    .GroupBy(p => p.Id)
+                    .ToDictionary(g => g.Key, g => g.First().FullName);
+            }
+
+            var history = deletionResult.Models
+                .Select(item => new DeletionHistoryResponse(
+                    ExpenseDescription: item.ExpenseDescription,
+                    ExpenseAmount: item.ExpenseAmount,
+                    DeletedByName: deletedByNames.GetValueOrDefault(item.DeletedBy, "Unknown"),
+                    DeletedByCurrentUser: item.DeletedBy == userId,
+                    DeletedAt: item.DeletedAt
+                ))
+                .ToList();
+
+            return Results.Ok(history);
+        });
     }
 }
 
 // Request and response DTOs
 public record CreateExpenseRequest(string Description, decimal Amount, string PaidBy);
 public record ExpenseResponse(string Id, string GroupId, string Description, decimal Amount, string PaidBy, DateTime? CreatedAt);
+public record DeletionHistoryResponse(
+    string ExpenseDescription,
+    decimal ExpenseAmount,
+    string DeletedByName,
+    bool DeletedByCurrentUser,
+    DateTime? DeletedAt
+);

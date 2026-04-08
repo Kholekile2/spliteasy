@@ -61,14 +61,14 @@ export default async function SettingsPage() {
             </div>
           </div>
 
-          <div className="app-card border-rose-200 p-6">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-rose-600">
+          <div className="app-card border-rose-200 bg-rose-50/40 p-6">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-rose-700">
               Danger zone
             </h2>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-slate-900">Delete account</p>
-                <p className="mt-0.5 text-xs text-slate-500">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="max-w-md">
+                <p className="text-sm font-semibold text-slate-900">Delete account</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   Permanently delete your account and all your data. This cannot be undone.
                 </p>
               </div>

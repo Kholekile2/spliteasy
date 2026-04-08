@@ -235,7 +235,8 @@ public static class SettlementsApi
                 GroupId = groupId,
                 FromUser = request.FromUser,
                 ToUser = request.ToUser,
-                Amount = request.Amount
+                Amount = request.Amount,
+                SettledAt = DateTime.UtcNow
             };
 
             await supabase.From<Settlement>().Insert(newSettlement);
